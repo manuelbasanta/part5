@@ -1,21 +1,24 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Blog from './components/Blog'
 import blogService from './services/blogs'
 import loginSerice from './services/login'
 import CreateBlogForm from './components/CreateBlog'
 import Message from './components/Message'
+import Toggable from './components/Togglable'
 
 const App = () => {
   const [user, setUser ] = useState(null)
-  const [username, setUsername] = useState('') 
-  const [password, setPassword] = useState('') 
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
   const [blogs, setBlogs] = useState([])
-  const [message, setMessage] = useState(null);
+  const [message, setMessage] = useState(null)
+
+  const createBlogFormRef = useRef()
 
   useEffect(() => {
     const fetchData = async () => {
       const blgosResponse = await blogService.getAll()
-      setBlogs(blgosResponse)
+      updateBlogs(blgosResponse)
     }
     fetchData()
   }, [])
@@ -33,7 +36,7 @@ const App = () => {
     event.preventDefault()
 
     try {
-      const loginData = await loginSerice.login({username, password})
+      const loginData = await loginSerice.login({ username, password })
       window.localStorage.setItem(
         'loggedUser', JSON.stringify(loginData)
       )
@@ -42,17 +45,18 @@ const App = () => {
       setUser(loginData)
       blogService.setToken(loginData.token)
     } catch(err) {
-      createMessage({type: 'error', text: err.response.data.error})
+      createMessage({ type: 'error', text: err.response.data.error })
     }
   }
 
   const createBlog = async (newBlog) => {
     try {
       const response = await blogService.create(newBlog)
-      setBlogs([...blogs, response])
-      createMessage({type: 'success', text: `A new blog ${response.title} by ${response.author} created`})
+      updateBlogs([...blogs, response])
+      createMessage({ type: 'success', text: `A new blog ${response.title} by ${response.author} created` })
+      createBlogFormRef.current.toggleVisibility()
     } catch (err) {
-      createMessage({type: 'error', text: err.response.data.message})
+      createMessage({ type: 'error', text: err.response.data.message })
     }
   }
 
@@ -66,6 +70,31 @@ const App = () => {
     setTimeout(() => setMessage(null), 5000)
   }
 
+  const handdleLike = async (id) => {
+    try {
+      const response = await blogService.like(id)
+      const newBlogs = blogs.map(blog => blog.id === response.id ? response : blog)
+      updateBlogs(newBlogs)
+    } catch (err) {
+      createMessage({ type: 'error', text: 'could not like' })
+    }
+  }
+
+  const handleRemove = async (id) => {
+    try {
+      await blogService.remove(id)
+      setBlogs(blogs.filter(blog => blog.id !== id))
+      createMessage({ type: 'success', text: 'Blog deleted successfully' })
+    } catch(err) {
+      createMessage({ type: 'error', text: err.response.data.error })
+    }
+  }
+
+  const updateBlogs = (newBlogs) => {
+    newBlogs.sort((a,b) => b.likes - a.likes )
+    setBlogs(newBlogs)
+  }
+
   if (user === null) {
     return (
       <div>
@@ -74,7 +103,7 @@ const App = () => {
         <form onSubmit={handleLogin}>
           <div>
             username
-              <input
+            <input
               type="text"
               value={username}
               name="Username"
@@ -83,7 +112,7 @@ const App = () => {
           </div>
           <div>
             password
-              <input
+            <input
               type="password"
               value={password}
               name="Password"
@@ -103,11 +132,13 @@ const App = () => {
       <div>{user.name} logged in</div> <button onClick={handleLogout}>logout</button>
       <br />
       <br />
-      <CreateBlogForm createBlog={createBlog} />
+      <Toggable showLabel="new blog" ref={createBlogFormRef} >
+        <CreateBlogForm createBlog={createBlog} />
+      </Toggable>
       <br />
       <br />
       {blogs.map(blog =>
-        <Blog key={blog.id} blog={blog} />
+        <Blog key={blog.id} blog={blog} like={handdleLike} remove={handleRemove} loggedUsername={user.username}/>
       )}
     </div>
   )
