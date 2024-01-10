@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
-import Blog from './components/Blog'
+import Blog from './components/Blog/Blog'
 import blogService from './services/blogs'
 import loginSerice from './services/login'
-import CreateBlogForm from './components/CreateBlog'
+import CreateBlogForm from './components/CreateBlog/CreateBlog'
 import Message from './components/Message'
 import Toggable from './components/Togglable'
 

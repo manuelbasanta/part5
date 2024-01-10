@@ -1,4 +1,4 @@
-import Toggable from './Togglable'
+import Toggable from '../Togglable'
 
 const Blog = ({ blog, like, remove, loggedUsername }) => {
 
@@ -20,14 +20,10 @@ const Blog = ({ blog, like, remove, loggedUsername }) => {
     <div style={blogStyle}>
       {blog.title} {blog.author}
       <Toggable showLabel="view" hideLabel="hide" >
-        {blog.url}
-        <br />
-        {blog.likes} <button onClick={() => like(blog.id)}>like</button>
-        <br />
-        {blog.user && blog.user.name}
-        <br />
+        <div>{blog.url}</div>
+        <div>{blog.likes}</div> <button onClick={() => like(blog.id)}>like</button>
+        {blog.user && <div>{blog.user.name}</div>}
         {loggedUsername === blog.user.username && <><button onClick={() => handleRemove(blog.id)}>remove</button>  <br /></>}
-
       </Toggable>
     </div>
   )
