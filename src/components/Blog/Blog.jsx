@@ -17,13 +17,13 @@ const Blog = ({ blog, like, remove, loggedUsername }) => {
   }
 
   return (
-    <div style={blogStyle}>
+    <div className='blogItem' style={blogStyle}>
       {blog.title} {blog.author}
       <Toggable showLabel="view" hideLabel="hide" >
         <div>{blog.url}</div>
-        <div>{blog.likes}</div> <button onClick={() => like(blog.id)}>like</button>
+        <div id="blog-likes">{blog.likes}</div> <button onClick={() => like(blog.id)}>like</button>
         {blog.user && <div>{blog.user.name}</div>}
-        {loggedUsername === blog.user.username && <><button onClick={() => handleRemove(blog.id)}>remove</button>  <br /></>}
+        {loggedUsername === blog.user?.username && <><button onClick={() => handleRemove(blog.id)}>remove</button>  <br /></>}
       </Toggable>
     </div>
   )
